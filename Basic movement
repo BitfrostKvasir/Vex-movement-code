@@ -1,0 +1,54 @@
+#include "vex.h"
+
+using namespace vex;
+
+// Brain and controller setup
+brain Brain;
+controller Controller1 = controller(primary);
+
+// Motor setup - adjust port numbers as needed
+motor leftMotor = motor(PORT1, ratio18_1, false);
+motor rightMotor = motor(PORT10, ratio18_1, true);  // Reversed for tank drive
+
+int main() {
+    // Calibrate the drivetrain
+    leftMotor.setMaxTorque(100, percent);
+    rightMotor.setMaxTorque(100, percent);
+    
+    while (true) {
+        // Get joystick values (-127 to 127)
+        int leftY = Controller1.Axis3.position(percent);   // Left stick Y-axis
+        int rightY = Controller1.Axis2.position(percent);  // Right stick Y-axis
+        int leftX = Controller1.Axis4.position(percent);   // Left stick X-axis (for turning)
+        int rightX = Controller1.Axis1.position(percent);  // Right stick X-axis
+        
+        // Basic tank drive (most common for VEX)
+        // Left joystick controls left motor, right joystick controls right motor
+        leftMotor.spin(forward, leftY, percent);
+        rightMotor.spin(forward, rightY, percent);
+        
+        /* Alternative: Arcade drive (single stick control)
+        // Uncomment this section and comment out tank drive above to use arcade
+        int forward = Controller1.Axis3.position(percent);  // Forward/backward
+        int turn = Controller1.Axis1.position(percent);     // Left/right turn
+        
+        // Calculate motor speeds
+        int leftSpeed = forward + turn;
+        int rightSpeed = forward - turn;
+        
+        // Limit speeds to valid range
+        if (leftSpeed > 100) leftSpeed = 100;
+        if (leftSpeed < -100) leftSpeed = -100;
+        if (rightSpeed > 100) rightSpeed = 100;
+        if (rightSpeed < -100) rightSpeed = -100;
+        
+        leftMotor.spin(forward, leftSpeed, percent);
+        rightMotor.spin(forward, rightSpeed, percent);
+        */
+        
+        // Small delay to prevent overwhelming the system
+        wait(20, msec);
+    }
+    
+    return 0;
+}
