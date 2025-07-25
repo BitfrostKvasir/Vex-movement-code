@@ -1,0 +1,49 @@
+#include "vex.h"
+
+using namespace vex;
+
+// Brain and controller setup
+brain Brain;
+controller Controller1 = controller(primary);
+
+// Motor setup - adjust port numbers as needed
+motor leftMotor = motor(PORT1, ratio18_1, false);
+motor rightMotor = motor(PORT10, ratio18_1, true);  // Reversed for tank drive
+
+// Deadzone to prevent drift from joystick imperfections
+const int DEADZONE = 5;
+
+int main() {
+    // Calibrate the drivetrain
+    leftMotor.setMaxTorque(100, percent);
+    rightMotor.setMaxTorque(100, percent);
+    leftMotor.setStopping(coast);
+    rightMotor.setStopping(coast);
+    
+    while (true) {
+        // Get rotation input from right joystick X-axis
+        int rotateInput = Controller1.Axis1.position(percent);
+        
+        // Apply deadzone to prevent unwanted movement
+        if (abs(rotateInput) < DEADZONE) {
+            rotateInput = 0;
+        }
+        
+        // Pure rotation: left and right motors spin in opposite directions
+        // Positive input = clockwise rotation
+        // Negative input = counterclockwise rotation
+        leftMotor.spin(forward, rotateInput, percent);
+        rightMotor.spin(reverse, rotateInput, percent);  // Opposite direction
+        
+        // Stop motors if no input
+        if (rotateInput == 0) {
+            leftMotor.stop();
+            rightMotor.stop();
+        }
+        
+        // Small delay to prevent system overload
+        wait(20, msec);
+    }
+    
+    return 0;
+}
